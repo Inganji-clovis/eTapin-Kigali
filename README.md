@@ -1,4 +1,4 @@
-# eTapin
+# eTapin-Kigali
 
 Smart public transport MVP for Kigali. The app currently focuses on a complete passenger-to-driver demand loop:
 
