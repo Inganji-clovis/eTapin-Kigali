@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Station {
+  id        String   @id @default(cuid())
+  name      String
+  latitude  Float
+  longitude Float
+  placeId   String?  @unique // Google Maps Place ID
+  isHub     Boolean  @default(false) // TRUE for Stations, FALSE for Stops
+
+  // Relations
+  routeStops RouteStop[]
+  requests   PassengerRequest[]
+  buses      Bus[]
+}
+
+model Route {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Route 104"
+  description String?
+  
+  // Relations
+  stops RouteStop[]
+  buses Bus[]
+}
+
+model RouteStop {
+  id        String @id @default(cuid())
+  routeId   String
+  stationId String
+  order     Int    // Sequence of the stop on the route
+
+  route   Route   @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@unique([routeId, stationId])
+}
+
+model PassengerRequest {
+  id            String   @id @default(cuid())
+  stationId     String
+  destinationId String?
+  status        String   @default("WAITING") // WAITING, BOARDED, CANCELLED
+  timestamp     DateTime @default(now())
+
+  station Station @relation(fields: [stationId], references: [id])
+}
+
+model Bus {
+  id               String  @id @default(cuid())
+  routeId          String
+  currentStationId String?
+  capacity         Int     @default(30)
+  active           Boolean @default(true)
+
+  route          Route    @relation(fields: [routeId], references: [id])
+  currentStation Station? @relation(fields: [currentStationId], references: [id])
+}
